@@ -229,6 +229,10 @@
  */
 @property (nonatomic, assign) NSInteger coverViewTag;
 /**
+ @brief The string displayed when entering wrong passcode
+ */
+@property (nonatomic, strong) NSString * errorPasscodeString;
+/**
  @brief The string displayed when entering your old passcode (while changing).
  */
 @property (nonatomic, strong) NSString *enterOldPasscodeString;

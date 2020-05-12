@@ -19,11 +19,6 @@
 #define LTHFailedAttemptLabelHeight [_failedAttemptLabel.text sizeWithFont:_labelFont].height
 #endif
 
-#ifndef LTHPasscodeViewControllerStrings
-#define LTHPasscodeViewControllerStrings(key) \
-[[NSBundle bundleWithPath:[[NSBundle bundleForClass:[LTHPasscodeViewController class]] pathForResource:@"LTHPasscodeViewController" ofType:@"bundle"]] localizedStringForKey:(key) value:@"" table:_localizationTableName]
-#endif
-
 // MARK: Please read
 /*
  Using windows[0] instead of keyWindow due to an issue with UIAlertViews / UIActionSheets - displaying the lockscreen when an alertView / actionSheet is visible, or displaying one after the lockscreen is visible results in a few cases:
@@ -368,7 +363,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
             
             // Authenticate User
             [self.biometricsContext evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics
-                                localizedReason:LTHPasscodeViewControllerStrings(self.biometricsDetailsString)
+                                localizedReason:self.biometricsDetailsString
                                           reply:^(BOOL success, NSError *error) {
                                               
                                               if (error || !success) {
@@ -682,7 +677,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     // It is also used to display the "Passcodes did not match" error message
     // if the user fails to confirm the passcode.
     _failedAttemptLabel = [[UILabel alloc] initWithFrame: CGRectZero];
-    _failedAttemptLabel.text = LTHPasscodeViewControllerStrings(@"1 Passcode Failed Attempt");
+    _failedAttemptLabel.text = self.errorPasscodeString;
     _failedAttemptLabel.numberOfLines = 0;
     _failedAttemptLabel.backgroundColor	= _failedAttemptLabelBackgroundColor;
     _failedAttemptLabel.hidden = YES;
@@ -691,8 +686,8 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _failedAttemptLabel.textAlignment = NSTextAlignmentCenter;
     [_animatingView addSubview: _failedAttemptLabel];
     
-    _enterPasscodeLabel.text = _isUserChangingPasscode ? LTHPasscodeViewControllerStrings(self.enterOldPasscodeString) : LTHPasscodeViewControllerStrings(self.enterPasscodeString);
-    _enterPasscodeInfoLabel.text = LTHPasscodeViewControllerStrings(self.enterPasscodeInfoString);
+    _enterPasscodeLabel.text = _isUserChangingPasscode ? self.enterOldPasscodeString : self.enterPasscodeString;
+    _enterPasscodeInfoLabel.text = self.enterPasscodeInfoString;
     
     _enterPasscodeLabel.translatesAutoresizingMaskIntoConstraints = NO;
     _enterPasscodeInfoLabel.translatesAutoresizingMaskIntoConstraints = NO;
@@ -734,7 +729,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 - (void)_setupOKButton {
     _OKButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_OKButton setTitle:LTHPasscodeViewControllerStrings(@"OK")
+    [_OKButton setTitle:@"OK"
                forState:UIControlStateNormal];
     _OKButton.titleLabel.font = _labelFont;
     _OKButton.backgroundColor = _enterPasscodeLabelBackgroundColor;
@@ -1091,7 +1086,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _passcodeAlreadyExists = NO;
     [self _prepareForEnablingPasscode];
     [self _prepareNavigationControllerWithController:viewController];
-    self.title = LTHPasscodeViewControllerStrings(self.enablePasscodeString);
+    self.title = self.enablePasscodeString;
 }
 
 
@@ -1100,7 +1095,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _displayedAsModal = isModal;
     [self _prepareForChangingPasscode];
     [self _prepareNavigationControllerWithController:viewController];
-    self.title = LTHPasscodeViewControllerStrings(self.changePasscodeString);
+    self.title = self.changePasscodeString;
 }
 
 
@@ -1109,7 +1104,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _displayedAsModal = isModal;
     [self _prepareForTurningOffPasscode];
     [self _prepareNavigationControllerWithController:viewController];
-    self.title = LTHPasscodeViewControllerStrings(self.turnOffPasscodeString);
+    self.title = self.turnOffPasscodeString;
 }
 
 
@@ -1370,14 +1365,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [self.delegate maxNumberOfFailedAttemptsReached];
     }
     
-    NSString *translationText;
-    if (_failedAttempts == 1) {
-        translationText = LTHPasscodeViewControllerStrings(@"1 Passcode Failed Attempt");
-    }
-    else {
-        translationText = [NSString stringWithFormat:LTHPasscodeViewControllerStrings(@"%i Passcode Failed Attempts"), _failedAttempts];
-        
-    }
+    NSString *translationText = self.errorPasscodeString;
     // To give it some padding. Since it's center-aligned,
     // it will automatically distribute the extra space.
     // Ironically enough, I found 5 spaces to be the best looking.
@@ -1425,32 +1413,32 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _passcodeTextField.text = @"";
     if (_isUserConfirmingPasscode) {
         if (_isUserEnablingPasscode) {
-            _enterPasscodeLabel.text = LTHPasscodeViewControllerStrings(self.reenterPasscodeString);
+            _enterPasscodeLabel.text = self.reenterPasscodeString;
             _enterPasscodeInfoLabel.hidden = YES;
         }
         else if (_isUserChangingPasscode) {
-            _enterPasscodeLabel.text = LTHPasscodeViewControllerStrings(self.reenterNewPasscodeString);
+            _enterPasscodeLabel.text = self.reenterNewPasscodeString;
             _enterPasscodeInfoLabel.hidden = YES;
         }
     }
     else if (_isUserBeingAskedForNewPasscode) {
         if (_isUserEnablingPasscode || _isUserChangingPasscode) {
-            _enterPasscodeLabel.text = LTHPasscodeViewControllerStrings(self.enterNewPasscodeString);
+            _enterPasscodeLabel.text = self.enterNewPasscodeString;
             _enterPasscodeInfoLabel.hidden = YES; //hidden for changing PIN
         }
     }
     else {
         if (_isUserChangingPasscode) {
-            _enterPasscodeLabel.text = LTHPasscodeViewControllerStrings(self.enterOldPasscodeString);
+            _enterPasscodeLabel.text = self.enterOldPasscodeString;
             _enterPasscodeInfoLabel.hidden = YES;
         } else {
-            _enterPasscodeLabel.text = LTHPasscodeViewControllerStrings(self.enterPasscodeString);
+            _enterPasscodeLabel.text = self.enterPasscodeString;
             //hidden for enabling PIN
             _enterPasscodeInfoLabel.hidden = !(_isUserEnablingPasscode && _displayAdditionalInfoDuringSettingPasscode);
         }
     }
     
-    _enterPasscodeInfoLabel.text = LTHPasscodeViewControllerStrings(self.enterPasscodeInfoString);
+    _enterPasscodeInfoLabel.text = self.enterPasscodeInfoString;
     
     // Make sure nav bar for logout is off the screen
     if (_isUsingNavBar) {
@@ -1471,13 +1459,9 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     NSString *savedPasscode = [LTHKeychainUtils getPasswordForUsername: _keychainPasscodeUsername
                                                         andServiceName: _keychainServiceName
                                                                  error: nil];
-    _enterPasscodeLabel.text = savedPasscode.length == 0
-            ? LTHPasscodeViewControllerStrings(self.enterPasscodeString)
-            : LTHPasscodeViewControllerStrings(self.enterNewPasscodeString);
+    _enterPasscodeLabel.text = savedPasscode.length == 0 ? self.enterPasscodeString : self.enterNewPasscodeString;
     _failedAttemptLabel.hidden = NO;
-    _failedAttemptLabel.text = _newPasscodeEqualsOldPasscode
-            ? LTHPasscodeViewControllerStrings(@"Cannot reuse the same passcode")
-            : LTHPasscodeViewControllerStrings(@"Passcodes did not match. Try again.");
+    _failedAttemptLabel.text = _newPasscodeEqualsOldPasscode ? @"Cannot reuse the same passcode" : self.errorPasscodeString;
     _newPasscodeEqualsOldPasscode = NO;
     _failedAttemptLabel.backgroundColor = [UIColor clearColor];
     _failedAttemptLabel.layer.borderWidth = 0;
