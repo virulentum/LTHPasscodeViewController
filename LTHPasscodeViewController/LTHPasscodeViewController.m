@@ -1464,7 +1464,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                                                  error: nil];
     _enterPasscodeLabel.text = savedPasscode.length == 0 ? self.enterPasscodeString : self.enterNewPasscodeString;
     _failedAttemptLabel.hidden = NO;
-    _failedAttemptLabel.text = _newPasscodeEqualsOldPasscode ? @"Cannot reuse the same passcode" : self.errorPasscodeString;
+    _failedAttemptLabel.text = _newPasscodeEqualsOldPasscode ? self.errorSamePasscodeString : self.errorPasscodeString;
     _newPasscodeEqualsOldPasscode = NO;
     _failedAttemptLabel.backgroundColor = [UIColor clearColor];
     _failedAttemptLabel.layer.borderWidth = 0;

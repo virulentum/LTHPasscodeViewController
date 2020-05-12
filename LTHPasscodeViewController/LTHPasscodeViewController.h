@@ -237,6 +237,10 @@
  */
 @property (nonatomic, strong) NSString * errorPasscodeString;
 /**
+ @brief The string displayed when entering the same passcode
+ */
+@property (nonatomic, strong) NSString * errorSamePasscodeString;
+/**
  @brief The string displayed when entering your old passcode (while changing).
  */
 @property (nonatomic, strong) NSString *enterOldPasscodeString;
