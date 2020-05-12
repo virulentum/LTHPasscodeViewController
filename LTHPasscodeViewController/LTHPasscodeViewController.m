@@ -546,8 +546,8 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     [self _resetUI];
     [_passcodeTextField resignFirstResponder];
     
-    if ([self.delegate respondsToSelector: @selector(passcodeViewControllerWillClose)]) {
-        [self.delegate performSelector: @selector(passcodeViewControllerWillClose)];
+    if ([self.delegate respondsToSelector: @selector(passcodeViewControllerWillClose:)]) {
+        [self.delegate passcodeViewControllerWillClose:YES];
     }
     
     if (_displayedAsModal) [self dismissViewControllerAnimated:YES completion:nil];
@@ -582,8 +582,8 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
             }
         }
     } completion: ^(BOOL finished) {
-        if ([self.delegate respondsToSelector: @selector(passcodeViewControllerWillClose)]) {
-            [self.delegate performSelector: @selector(passcodeViewControllerWillClose)];
+        if ([self.delegate respondsToSelector: @selector(passcodeViewControllerWillClose:)]) {
+            [self.delegate passcodeViewControllerWillClose:NO];
         }
         
         if (self.displayedAsLockScreen) {

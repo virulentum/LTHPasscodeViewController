@@ -13,7 +13,7 @@
 /**
  @brief Called right before the passcode view controller will be dismissed or popped.
  */
-- (void)passcodeViewControllerWillClose;
+- (void)passcodeViewControllerWillClose:(BOOL) wasCancelled;
 /**
  @brief Called when the max number of failed attempts has been reached.
  */
