@@ -145,6 +145,10 @@
  */
 @property (nonatomic, strong) UIFont *passcodeFont;
 /**
+ @brief The color for the entered passcode digits.
+ */
+@property (nonatomic, strong) UIColor *passcodeColor;
+/**
  @brief The background color for the top label.
  */
 @property (nonatomic, strong) UIColor *enterPasscodeLabelBackgroundColor;

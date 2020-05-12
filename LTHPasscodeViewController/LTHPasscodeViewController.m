@@ -758,6 +758,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     // the keyboard, then focusing the text field again.
     // When simple, the text field only acts as a proxy and is hidden anyway.
     _passcodeTextField.secureTextEntry = !self.isSimple;
+    _passcodeTextField.textColor = _passcodeTextField.isSecureTextEntry ? self.passcodeColor : self.passcodeTextColor;
     _passcodeTextField.keyboardType = self.isSimple ? UIKeyboardTypeNumberPad : UIKeyboardTypeASCIICapable;
     [_passcodeTextField reloadInputViews];
     
@@ -1198,6 +1199,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         
         [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
             textField.secureTextEntry = typedString.length > idx;
+            textField.textColor = typedString.length > idx ? self.passcodeColor : self.passcodeTextColor;
         }];
         
         if (typedString.length == _digitsCount) {
@@ -1373,7 +1375,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     
     _failedAttemptLabel.layer.cornerRadius = LTHiPad ? 19 : 14;
     _failedAttemptLabel.clipsToBounds = true;
-    _failedAttemptLabel.hidden = NO;
+    _failedAttemptLabel.hidden = YES;
 }
 
 
@@ -1400,6 +1402,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     
     [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
         textField.secureTextEntry = NO;
+        textField.textColor = self.passcodeTextColor;
     }];
 }
 
@@ -1627,7 +1630,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _passcodeAlreadyExists = YES;
     _newPasscodeEqualsOldPasscode = NO;
     _allowUnlockWithBiometrics = [self _allowUnlockWithBiometrics];
-    _passcodeCharacter = @"\u2014"; // A longer "-";
+    _passcodeCharacter = @"\u2022"; // A longer "-";
     _localizationTableName = @"LTHPasscodeViewController";
     _displayAdditionalInfoDuringSettingPasscode = NO;
 }
@@ -1678,6 +1681,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     // Text
     _labelTextColor = [UIColor colorWithWhite:0.31f alpha:1.0f];
     _passcodeTextColor = [UIColor colorWithWhite:0.31f alpha:1.0f];
+    _passcodeColor = [UIColor colorWithRed:0x08/255.0 green:0xA0/255.0 blue:0xB6 alpha:1.0];
     _failedAttemptLabelTextColor = [UIColor whiteColor];
 }
 
