@@ -593,6 +593,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         
         if (self.displayedAsLockScreen) {
             [self.digitTextFieldsArray removeAllObjects];
+            self.updatedEnteringPasscode = @"";
             [self.internalPasscodeView removeFromSuperview];
             [self.view removeFromSuperview];
             [self removeFromParentViewController];
@@ -1948,7 +1949,7 @@ UIInterfaceOrientationMask UIInterfaceOrientationMaskFromOrientation(UIInterface
         self.updatedEnteringPasscode = [NSString stringWithFormat:@"%@%ld", self.updatedEnteringPasscode, (long)digit];
         break;
     }
-    if (self.updatedEnteringPasscode.length == 4) {
+    if (self.updatedEnteringPasscode.length >= 4) {
         NSString * typedString = self.updatedEnteringPasscode;
         // Make the last bullet show up
         [self performSelector: @selector(_validatePasscode:)
