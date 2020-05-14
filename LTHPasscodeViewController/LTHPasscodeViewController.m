@@ -546,7 +546,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     }
     
     if (_displayedAsModal) [self dismissViewControllerAnimated:YES completion:nil];
-    else if (!_displayedAsLockScreen) [self.navigationController popViewControllerAnimated:YES];
+    else if (!_displayedAsLockScreen && !self.isMovingFromParentViewController) { [self.navigationController popViewControllerAnimated:YES]; }
 }
 
 
