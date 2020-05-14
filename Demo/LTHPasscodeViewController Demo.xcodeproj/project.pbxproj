@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0624FF92246D30EC0024903D /* PasscodeAsset.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0624FF91246D30EC0024903D /* PasscodeAsset.xcassets */; };
+		0624FF9B246D75400024903D /* PasscodeLocker.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0624FF9A246D75400024903D /* PasscodeLocker.xib */; };
+		0624FFA0246D7BDB0024903D /* PasscodeLockerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0624FF9F246D7BDB0024903D /* PasscodeLockerView.m */; };
 		2A8702B3231F86EC00B178E4 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2A8702B2231F86EC00B178E4 /* Launch Screen.storyboard */; };
 		2AE8000A17D9503000DBDE63 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2AE8000917D9503000DBDE63 /* Foundation.framework */; };
 		2AE8000C17D9503000DBDE63 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2AE8000B17D9503000DBDE63 /* CoreGraphics.framework */; };
@@ -22,6 +25,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0624FF91246D30EC0024903D /* PasscodeAsset.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = PasscodeAsset.xcassets; sourceTree = "<group>"; };
+		0624FF9A246D75400024903D /* PasscodeLocker.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PasscodeLocker.xib; sourceTree = "<group>"; };
+		0624FF9E246D7BDB0024903D /* PasscodeLockerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PasscodeLockerView.h; sourceTree = "<group>"; };
+		0624FF9F246D7BDB0024903D /* PasscodeLockerView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PasscodeLockerView.m; sourceTree = "<group>"; };
 		2A2964741DDF46D400F44FFA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		2A2964761DDF46D600F44FFA /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		2A2964771DDF46D700F44FFA /* ro */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ro; path = ro.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -131,6 +138,10 @@
 				7D06D11D191B842B00D399E8 /* Localizations */,
 				2AF1958E182C09D5005CE38A /* LTHPasscodeViewController.h */,
 				2AF1958F182C09D5005CE38A /* LTHPasscodeViewController.m */,
+				0624FF91246D30EC0024903D /* PasscodeAsset.xcassets */,
+				0624FF9A246D75400024903D /* PasscodeLocker.xib */,
+				0624FF9E246D7BDB0024903D /* PasscodeLockerView.h */,
+				0624FF9F246D7BDB0024903D /* PasscodeLockerView.m */,
 				2AF19591182C09D5005CE38A /* LTHKeychainUtils.h */,
 				2AF19592182C09D5005CE38A /* LTHKeychainUtils.m */,
 			);
@@ -179,6 +190,7 @@
 				TargetAttributes = {
 					2AE8000517D9503000DBDE63 = {
 						DevelopmentTeam = 78653ABY96;
+						LastSwiftMigration = 1140;
 						SystemCapabilities = {
 							com.apple.Keychain = {
 								enabled = 1;
@@ -222,6 +234,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A74908891BFBA75E00C6DA16 /* LTHPasscodeViewController.bundle in Resources */,
+				0624FF92246D30EC0024903D /* PasscodeAsset.xcassets in Resources */,
+				0624FF9B246D75400024903D /* PasscodeLocker.xib in Resources */,
 				2AE8001417D9503000DBDE63 /* InfoPlist.strings in Resources */,
 				2A8702B3231F86EC00B178E4 /* Launch Screen.storyboard in Resources */,
 				2AE8001C17D9503000DBDE63 /* Images.xcassets in Resources */,
@@ -239,6 +253,7 @@
 				2AE8004117D9507E00DBDE63 /* LTHDemoViewController.m in Sources */,
 				2AF19596182C09D5005CE38A /* LTHKeychainUtils.m in Sources */,
 				2AE8001A17D9503000DBDE63 /* LTHAppDelegate.m in Sources */,
+				0624FFA0246D7BDB0024903D /* PasscodeLockerView.m in Sources */,
 				2AF19595182C09D5005CE38A /* LTHPasscodeViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -373,14 +388,22 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "LTHPasscodeViewController Demo/LTHPasscodeViewController Demo.entitlements";
 				DEVELOPMENT_TEAM = 78653ABY96;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "LTHPasscodeViewController Demo/LTHPasscodeViewController Demo-Prefix.pch";
 				INFOPLIST_FILE = "$(SRCROOT)/LTHPasscodeViewController Demo/LTHPasscodeViewController Demo-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.RolandLeth.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "LTHPasscodeViewController Demo";
+				SWIFT_OBJC_BRIDGING_HEADER = "../LTHPasscodeViewController/LTHPasscodeViewController Demo-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -389,14 +412,21 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "LTHPasscodeViewController Demo/LTHPasscodeViewController Demo.entitlements";
 				DEVELOPMENT_TEAM = 78653ABY96;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "LTHPasscodeViewController Demo/LTHPasscodeViewController Demo-Prefix.pch";
 				INFOPLIST_FILE = "$(SRCROOT)/LTHPasscodeViewController Demo/LTHPasscodeViewController Demo-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.RolandLeth.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "LTHPasscodeViewController Demo";
+				SWIFT_OBJC_BRIDGING_HEADER = "../LTHPasscodeViewController/LTHPasscodeViewController Demo-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

@@ -16,7 +16,7 @@ Pod::Spec.new do |spec|
   #
 
   spec.name         = "LTHPasscodeViewController"
-  spec.version      = "4.0.3"
+  spec.version      = "4.0.4"
   spec.summary      = "iOS 7 style Passcode Lock"
 
   # This description is used to generate tags and improve search results.
@@ -108,7 +108,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   #
 
   # spec.resource  = "icon.png"
-  # spec.resources = "Resources/*.png"
+  spec.resources = "*.xib"
 
   # spec.preserve_paths = "FilesToSave", "MoreFilesToSave"
 
