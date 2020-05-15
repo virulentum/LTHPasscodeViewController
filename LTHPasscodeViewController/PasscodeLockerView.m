@@ -18,4 +18,11 @@
     return @[self.firstDigitField, self.secondDigitField, self.thirdDigitField, self.fourthDigitField];
 }
 
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    if ((NSInteger)MAX(UIScreen.mainScreen.bounds.size.height, UIScreen.mainScreen.bounds.size.width) <= 568) {
+        self.imageIcon.alpha = 0.0;
+    }
+}
+
 @end
