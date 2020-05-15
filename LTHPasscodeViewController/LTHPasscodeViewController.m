@@ -1392,6 +1392,11 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     animation.timingFunction = [CAMediaTimingFunction functionWithName: kCAAnimationLinear];
     animation.values = @[@-12, @12, @-12, @12, @-6, @6, @-3, @3, @0];
 
+    self.view.userInteractionEnabled = NO;
+    [CATransaction begin];
+    [CATransaction setCompletionBlock:^{
+        self.view.userInteractionEnabled = YES;
+    }];
     UIColor * passcodeDigitColor = self.passcodeTextColor;
     [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
         [CATransaction begin];
@@ -1402,6 +1407,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [textField.layer addAnimation:animation forKey:@"shake"];
         [CATransaction commit];
     }];
+    [CATransaction commit];
     
     _failedAttempts++;
     
