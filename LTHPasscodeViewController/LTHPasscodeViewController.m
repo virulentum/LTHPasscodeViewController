@@ -1392,10 +1392,10 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     animation.timingFunction = [CAMediaTimingFunction functionWithName: kCAAnimationLinear];
     animation.values = @[@-12, @12, @-12, @12, @-6, @6, @-3, @3, @0];
 
-    self.view.userInteractionEnabled = NO;
+    self.internalPasscodeView.isTempararlyDisabled = YES;
     [CATransaction begin];
     [CATransaction setCompletionBlock:^{
-        self.view.userInteractionEnabled = YES;
+        self.internalPasscodeView.isTempararlyDisabled = NO;
     }];
     UIColor * passcodeDigitColor = self.passcodeTextColor;
     [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -1931,6 +1931,7 @@ UIInterfaceOrientationMask UIInterfaceOrientationMaskFromOrientation(UIInterface
 #pragma mark - Passcode buttons
 
 - (void) didPressPasscodeButton:(UIButton *)sender {
+    if (self.internalPasscodeView.isTempararlyDisabled) { return; }
     // Delete button
     if (sender.currentImage != nil) {
         if (self.updatedEnteringPasscode.length < 1) { return; }

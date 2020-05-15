@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 @interface PasscodeLockerView : UIView
-
+@property (assign, nonatomic) BOOL isTempararlyDisabled;
 @property (weak, nonatomic) IBOutlet UITextField *firstDigitField;
 @property (weak, nonatomic) IBOutlet UITextField *secondDigitField;
 @property (weak, nonatomic) IBOutlet UITextField *thirdDigitField;
