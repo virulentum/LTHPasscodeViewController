@@ -1395,7 +1395,9 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     self.internalPasscodeView.isTempararlyDisabled = YES;
     [CATransaction begin];
     [CATransaction setCompletionBlock:^{
-        self.internalPasscodeView.isTempararlyDisabled = NO;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.6 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            self.internalPasscodeView.isTempararlyDisabled = NO;
+        });
     }];
     UIColor * passcodeDigitColor = self.passcodeTextColor;
     [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
