@@ -1395,7 +1395,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     self.internalPasscodeView.isTempararlyDisabled = YES;
     [CATransaction begin];
     [CATransaction setCompletionBlock:^{
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.6 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             self.internalPasscodeView.isTempararlyDisabled = NO;
         });
     }];
@@ -1961,9 +1961,7 @@ UIInterfaceOrientationMask UIInterfaceOrientationMaskFromOrientation(UIInterface
     if (self.updatedEnteringPasscode.length >= 4) {
         NSString * typedString = self.updatedEnteringPasscode;
         // Make the last bullet show up
-        [self performSelector: @selector(_validatePasscode:)
-                   withObject: typedString
-                   afterDelay: 0.15];
+        [self _validatePasscode:typedString];
     }
 }
 
