@@ -511,7 +511,11 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         _animatingView.hidden = NO;
     }
     if (_isUsingBiometrics && !_isUserChangingPasscode && !_isUserBeingAskedForNewPasscode && !_isUserConfirmingPasscode && !_isUserEnablingPasscode && !_isUserSwitchingBetweenPasscodeModes && !_isUserTurningPasscodeOff) {
-        [_passcodeTextField resignFirstResponder];
+        if (self.internalPasscodeView == nil) {
+            [_passcodeTextField resignFirstResponder];
+        } else {
+            [self.view endEditing:YES];
+        }
         _animatingView.hidden = _isUsingBiometrics;
     }
 }
@@ -565,9 +569,9 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _isCurrentlyOnScreen = NO;
     [self _resetUI];
     [_passcodeTextField resignFirstResponder];
-    [UIView animateWithDuration: _lockAnimationDuration animations: ^{
+    [UIView animateWithDuration:_lockAnimationDuration delay:0.0 options:UIViewAnimationOptionCurveLinear animations:^{
         if (self.displayedAsLockScreen) {
-            self.view.center = CGPointMake(self.view.center.x, self.view.center.y * 2.f);
+            self.view.center = CGPointMake(self.view.center.x, self.view.center.y * 4.f);
         }
         else {
             // Delete from Keychain
@@ -844,7 +848,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
             CGFloat constant = idx == 0 ? 0 : self.horizontalGap;
             UIView *toItem = idx == 0 ? self.simplePasscodeView : self.digitTextFieldsArray[idx - 1];
-
+            [textField.widthAnchor constraintEqualToConstant:34].active = YES;
             NSLayoutConstraint *digitX =
             [NSLayoutConstraint constraintWithItem: textField
                                          attribute: NSLayoutAttributeLeft
@@ -1451,6 +1455,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         // cancel in the Touch ID prompt. In some cases, the keyboard is present, but invisible
         // after dismissing the alert unless we call becomeFirstResponder with a short delay
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            if (self.internalPasscodeView != nil) { return; }
             [self.passcodeTextField becomeFirstResponder];
         });
     }
