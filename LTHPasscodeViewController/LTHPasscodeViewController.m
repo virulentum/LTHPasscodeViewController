@@ -1568,14 +1568,6 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
             [LTHMainWindow addSubview: _coverView];
         }
     }
-    if (self.internalPasscodeView != nil) {
-        self.updatedEnteringPasscode = @"";
-        UIColor * passcodeDigitColor = self.passcodeTextColor;
-        [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
-            textField.secureTextEntry = NO;
-            textField.textColor = passcodeDigitColor;
-        }];
-    }
 }
 
 
@@ -1618,6 +1610,14 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     if ([self _doesPasscodeExist] && !([self isCurrentlyOnScreen] && [self displayedAsLockScreen])) {
         _useFallbackPasscode = NO;
         [self _saveTimerStartTime];
+    }
+    if (self.internalPasscodeView != nil) {
+        self.updatedEnteringPasscode = @"";
+        UIColor * passcodeDigitColor = self.passcodeTextColor;
+        [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
+            textField.secureTextEntry = NO;
+            textField.textColor = passcodeDigitColor;
+        }];
     }
 }
 
