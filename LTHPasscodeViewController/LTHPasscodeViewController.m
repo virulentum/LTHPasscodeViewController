@@ -1404,6 +1404,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [CATransaction begin];
         [CATransaction setCompletionBlock:^{
             textField.textColor = passcodeDigitColor;
+            textField.secureTextEntry = NO;
         }];
         textField.textColor = UIColor.redColor;
         [textField.layer addAnimation:animation forKey:@"shake"];
@@ -1566,6 +1567,14 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         if (![LTHMainWindow viewWithTag: _coverViewTag]) {
             [LTHMainWindow addSubview: _coverView];
         }
+    }
+    if (self.internalPasscodeView != nil) {
+        self.updatedEnteringPasscode = @"";
+        UIColor * passcodeDigitColor = self.passcodeTextColor;
+        [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
+            textField.secureTextEntry = NO;
+            textField.textColor = passcodeDigitColor;
+        }];
     }
 }
 
@@ -1931,6 +1940,10 @@ UIInterfaceOrientationMask UIInterfaceOrientationMaskFromOrientation(UIInterface
 }
 
 #pragma mark - Passcode buttons
+
+- (BOOL) canBecomeFirstResponder {
+    return self.internalPasscodeView == nil;
+}
 
 - (void) didPressPasscodeButton:(UIButton *)sender {
     if (self.internalPasscodeView.isTempararlyDisabled) { return; }
