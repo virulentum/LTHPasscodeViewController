@@ -514,7 +514,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         if (self.internalPasscodeView == nil) {
             [_passcodeTextField resignFirstResponder];
         } else {
-            [self.view endEditing:YES];
+            [self.view.window endEditing:YES];
         }
         _animatingView.hidden = _isUsingBiometrics;
     }
@@ -785,15 +785,14 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _simplePasscodeView.hidden = !self.isSimple;
     
     _complexPasscodeOverlayView.hidden = self.isSimple;
-    _passcodeTextField.hidden = self.isSimple;
+    _passcodeTextField.alpha = 0.0;
     // This would make the existing text to be cleared after dismissing
     // the keyboard, then focusing the text field again.
     // When simple, the text field only acts as a proxy and is hidden anyway.
     _passcodeTextField.secureTextEntry = !self.isSimple;
     _passcodeTextField.textColor = _passcodeTextField.isSecureTextEntry ? self.passcodeColor : self.passcodeTextColor;
     _passcodeTextField.keyboardType = self.isSimple ? UIKeyboardTypeNumberPad : UIKeyboardTypeASCIICapable;
-    [_passcodeTextField reloadInputViews];
-    
+
     if (self.isSimple) {
         [_animatingView addSubview:_passcodeTextField];
     }
