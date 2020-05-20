@@ -507,7 +507,11 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _backgroundImageView.image = _backgroundImage;
     
     if (!_passcodeTextField.isFirstResponder && (!_isUsingBiometrics || _isUserChangingPasscode || _isUserBeingAskedForNewPasscode || _isUserConfirmingPasscode || _isUserEnablingPasscode || _isUserSwitchingBetweenPasscodeModes || _isUserTurningPasscodeOff)) {
-        [_passcodeTextField becomeFirstResponder];
+        if (self.internalPasscodeView == nil) {
+            [_passcodeTextField resignFirstResponder];
+        } else {
+            [self.view.window endEditing:YES];
+        }
         _animatingView.hidden = NO;
     }
     if (_isUsingBiometrics && !_isUserChangingPasscode && !_isUserBeingAskedForNewPasscode && !_isUserConfirmingPasscode && !_isUserEnablingPasscode && !_isUserSwitchingBetweenPasscodeModes && !_isUserTurningPasscodeOff) {
