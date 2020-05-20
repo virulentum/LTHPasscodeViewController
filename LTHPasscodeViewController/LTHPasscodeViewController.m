@@ -95,6 +95,7 @@
 
 @property (copy, nonatomic) NSString * updatedEnteringPasscode;
 @property (weak, nonatomic) PasscodeLockerView * internalPasscodeView;
+@property (assign, nonatomic) BOOL isTempararlyDisabled;
 @end
 
 @implementation LTHPasscodeViewController
@@ -1234,7 +1235,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
     
-    if ([string isEqualToString: @"\n"]) return NO;
+    if ([string isEqualToString: @"\n"] || self.isTempararlyDisabled) return NO;
     
     NSString *typedString = [textField.text stringByReplacingCharactersInRange: range
                                                                     withString: string];
@@ -1399,11 +1400,11 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     animation.timingFunction = [CAMediaTimingFunction functionWithName: kCAAnimationLinear];
     animation.values = @[@-12, @12, @-12, @12, @-6, @6, @-3, @3, @0];
 
-    self.internalPasscodeView.isTempararlyDisabled = YES;
+    self.isTempararlyDisabled = YES;
     [CATransaction begin];
     [CATransaction setCompletionBlock:^{
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            self.internalPasscodeView.isTempararlyDisabled = NO;
+            self.isTempararlyDisabled = NO;
         });
     }];
     UIColor * passcodeDigitColor = self.passcodeTextColor;
@@ -1954,7 +1955,7 @@ UIInterfaceOrientationMask UIInterfaceOrientationMaskFromOrientation(UIInterface
 }
 
 - (void) didPressPasscodeButton:(UIButton *)sender {
-    if (self.internalPasscodeView.isTempararlyDisabled) { return; }
+    if (self.isTempararlyDisabled) { return; }
     // Delete button
     if (sender.currentImage != nil) {
         if (self.updatedEnteringPasscode.length < 1) { return; }
