@@ -20,6 +20,21 @@
 #define LTHFailedAttemptLabelHeight [_failedAttemptLabel.text sizeWithFont:_labelFont].height
 #endif
 
+@interface PasscodeWindow : UIWindow
+
+@end
+
+@implementation PasscodeWindow
+
+-(void) dismiss {
+    self.hidden = YES;
+    if (@available(iOS 13.0, *)) {
+        self.windowScene = nil;
+    }
+}
+
+@end
+
 // MARK: Please read
 /*
  Using windows[0] instead of keyWindow due to an issue with UIAlertViews / UIActionSheets - displaying the lockscreen when an alertView / actionSheet is visible, or displaying one after the lockscreen is visible results in a few cases:
@@ -30,14 +45,14 @@
    * doesn't appear until the av/as is dismissed;
    * appears on top on the av/as - if the app is closed and reopened with the av/as visible.
  * the lockscreen appears above the av/as, while the keyboard appears below, so there's no way to enter the passcode.
- 
+
  The current implementation shows the lockscreen behind the av/as.
- 
+
  Relevant links:
  * https://github.com/rolandleth/LTHPasscodeViewController/issues/16
  * https://github.com/rolandleth/LTHPasscodeViewController/issues/164 (the description found above)
  * https://stackoverflow.com/questions/19816142/uialertviews-uiactionsheets-and-keywindow-problems
- 
+
  Any help would be greatly appreciated.
  */
 
@@ -96,6 +111,7 @@
 @property (copy, nonatomic) NSString * updatedEnteringPasscode;
 @property (weak, nonatomic) PasscodeLockerView * internalPasscodeView;
 @property (assign, nonatomic) BOOL isTempararlyDisabled;
+@property (strong, nonatomic) PasscodeWindow * internalWindow;
 @end
 
 @implementation LTHPasscodeViewController
@@ -177,7 +193,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     } else {
         _isSimple = YES;
     }
-    
+
     return [self _passcode].length != 0;
 }
 
@@ -187,7 +203,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [self.delegate respondsToSelector:@selector(timerDuration)]) {
         return [self.delegate timerDuration];
     }
-    
+
     NSString *keychainValue =
     [LTHKeychainUtils getPasswordForUsername:_keychainTimerDurationUsername
                               andServiceName:_keychainServiceName
@@ -201,10 +217,10 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     if (!_usesKeychain &&
         [self.delegate respondsToSelector:@selector(saveTimerDuration:)]) {
         [self.delegate saveTimerDuration:duration];
-        
+
         return;
     }
-    
+
     [LTHKeychainUtils storeUsername:_keychainTimerDurationUsername
                         andPassword:[NSString stringWithFormat: @"%.6f", duration]
                      forServiceName:_keychainServiceName
@@ -218,7 +234,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [self.delegate respondsToSelector:@selector(timerStartTime)]) {
         return [self.delegate timerStartTime];
     }
-    
+
     NSString *keychainValue =
     [LTHKeychainUtils getPasswordForUsername:_keychainTimerStartUsername
                               andServiceName:_keychainServiceName
@@ -232,10 +248,10 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     if (!_usesKeychain &&
         [self.delegate respondsToSelector:@selector(saveTimerStartTime)]) {
         [self.delegate saveTimerStartTime];
-        
+
         return;
     }
-    
+
     [LTHKeychainUtils storeUsername:_keychainTimerStartUsername
                         andPassword:[NSString stringWithFormat: @"%.6f",
                                      [NSDate timeIntervalSinceReferenceDate]]
@@ -250,7 +266,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [self.delegate respondsToSelector:@selector(didPasscodeTimerEnd)]) {
         return [self.delegate didPasscodeTimerEnd];
     }
-    
+
     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
     // startTime wasn't saved yet (first app use and it crashed, phone force
     // closed, etc) if it returns -1.
@@ -267,10 +283,10 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     if (!_usesKeychain &&
         [self.delegate respondsToSelector:@selector(deletePasscode)]) {
         [self.delegate deletePasscode];
-        
+
         return;
     }
-    
+
     [LTHKeychainUtils deleteItemForUsername:_keychainPasscodeUsername
                              andServiceName:_keychainServiceName
                                       error:nil];
@@ -282,22 +298,22 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [self.delegate respondsToSelector:@selector(passcodeWasEnabled)]) {
         [self.delegate passcodeWasEnabled];
     }
-    
+
     _passcodeAlreadyExists = YES;
-    
+
     if (!_usesKeychain &&
         [self.delegate respondsToSelector:@selector(savePasscode:)]) {
         [self.delegate savePasscode:passcode];
-        
+
         return;
     }
-    
+
     [LTHKeychainUtils storeUsername:_keychainPasscodeUsername
                         andPassword:passcode
                      forServiceName:_keychainServiceName
                      updateExisting:YES
                               error:nil];
-    
+
     [LTHKeychainUtils storeUsername:_keychainPasscodeIsSimpleUsername
                         andPassword:[NSString stringWithFormat:@"%@", [self isSimple] ? @"YES" : @"NO"]
                      forServiceName:_keychainServiceName
@@ -311,7 +327,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [self.delegate respondsToSelector:@selector(passcode)]) {
         return [self.delegate passcode];
     }
-    
+
     return [LTHKeychainUtils getPasswordForUsername:_keychainPasscodeUsername
                                      andServiceName:_keychainServiceName
                                               error:nil];
@@ -332,67 +348,67 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
             self.isUsingBiometrics = NO;
             self.allowUnlockWithBiometrics = NO;
         }
-        
+
         self.useFallbackPasscode = YES;
         self.animatingView.hidden = NO;
-        
+
         BOOL usingNavBar = self.isUsingNavBar;
         NSString *logoutTitle = usingNavBar ? self.navBar.items.firstObject.leftBarButtonItem.title : @"";
-        
+
         [self _resetUI];
-        
+
         if (usingNavBar) {
             self.isUsingNavBar = usingNavBar;
             [self _setupNavBarWithLogoutTitle:logoutTitle];
         }
     });
-    
+
     self.biometricsContext = nil;
 }
 
 - (void)_setupFingerPrint {
     if (!self.biometricsContext && _allowUnlockWithBiometrics && !_useFallbackPasscode) {
         self.biometricsContext = [[LAContext alloc] init];
-        
+
         NSError *error = nil;
         if ([self.biometricsContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error]) {
             if (error) {
                 return;
             }
-            
+
             if (@available(iOS 11.0, *)) {
                 if (self.biometricsContext.biometryType == LABiometryTypeFaceID) {
                     self.biometricsDetailsString = @"Unlock using Face ID";
                 }
             }
-            
+
             _isUsingBiometrics = YES;
             [_passcodeTextField resignFirstResponder];
             _animatingView.hidden = YES;
-            
+
             // Authenticate User
             [self.biometricsContext evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics
                                 localizedReason:self.biometricsDetailsString
                                           reply:^(BOOL success, NSError *error) {
-                                              
+
                                               if (error || !success) {
                                                   [self _handleBiometricsFailureAndDisableIt:false];
-                                                  
+
                                                   if ([self.delegate respondsToSelector: @selector(biometricsAuthenticationFailed)]) {
                                                       [self.delegate performSelector: @selector(biometricsAuthenticationFailed)];
                                                   }
-                                                  
+
                                                   return;
                                               }
-                                              
+
                                               dispatch_async(dispatch_get_main_queue(), ^{
                                                   [self _dismissMe];
-                                                  
+
                                                   if ([self.delegate respondsToSelector: @selector(passcodeWasEnteredSuccessfully)]) {
                                                       [self.delegate performSelector: @selector(passcodeWasEnteredSuccessfully)];
                                                   }
                                               });
-                                              
+
                                               self.biometricsContext = nil;
                                           }];
         }
@@ -410,10 +426,10 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     if (!_usesKeychain &&
         [self.delegate respondsToSelector:@selector(saveAllowUnlockWithBiometrics:)]) {
         [self.delegate saveAllowUnlockWithBiometrics:_allowUnlockWithBiometrics];
-        
+
         return;
     }
-    
+
     [LTHKeychainUtils storeUsername:_keychainAllowUnlockWithBiometrics
                         andPassword:[NSString stringWithFormat: @"%d",
                                      _allowUnlockWithBiometrics]
@@ -429,7 +445,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [self.delegate respondsToSelector:@selector(allowUnlockWithBiometrics)]) {
         return [self.delegate allowUnlockWithBiometrics];
     }
-    
+
     NSString *keychainValue = [LTHKeychainUtils getPasswordForUsername:_keychainAllowUnlockWithBiometrics
                                                         andServiceName:_keychainServiceName
                                                                  error:nil];
@@ -447,16 +463,16 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 - (void)setDigitsCount:(NSInteger)digitsCount {
     // If a passcode exists, don't allow the changing of the number of digits.
     if ([self _doesPasscodeExist]) { return; }
-    
+
     if (digitsCount < LTHMinPasscodeDigits) {
         digitsCount = LTHMinPasscodeDigits;
     }
     else if (digitsCount > LTHMaxPasscodeDigits) {
         digitsCount = LTHMaxPasscodeDigits;
     }
-    
+
     _digitsCount = digitsCount;
-    
+
     // If we haven't loaded yet, do nothing,
     // _setupDigitFields will be called in viewDidLoad.
     if (!self.isViewLoaded) { return; }
@@ -469,25 +485,25 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     [super viewDidLoad];
     self.updatedEnteringPasscode = @"";
     self.view.backgroundColor = _backgroundColor;
-    
+
     _backgroundImageView = [[UIImageView alloc] initWithFrame:self.view.frame];
     [self.view addSubview:_backgroundImageView];
     _backgroundImageView.image = _backgroundImage;
-    
+
     _failedAttempts = 0;
     _animatingView = [[UIView alloc] initWithFrame: self.view.frame];
     [self.view addSubview: _animatingView];
-    
+
     [self _setupViews];
     [self _setupLabels];
     [self _setupOKButton];
-    
+
     // If on first launch we have a passcode, the number of digits should equal that.
     if ([self _doesPasscodeExist]) {
         _digitsCount = [self _passcode].length;
     }
     [self _setupDigitFields];
-    
+
     _passcodeTextField = [[UITextField alloc] initWithFrame: CGRectZero];
     _passcodeTextField.delegate = self;
     _passcodeTextField.translatesAutoresizingMaskIntoConstraints = NO;
@@ -498,33 +514,28 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    
+
     if (!self.isAppNotificationsObserved) {
         [self _addObservers];
         self.isAppNotificationsObserved = YES;
     }
-    
+
     _animatingView.hidden = NO;
     _backgroundImageView.image = _backgroundImage;
-    
+
     if (!_passcodeTextField.isFirstResponder && (!_isUsingBiometrics || _isUserChangingPasscode || _isUserBeingAskedForNewPasscode || _isUserConfirmingPasscode || _isUserEnablingPasscode || _isUserSwitchingBetweenPasscodeModes || _isUserTurningPasscodeOff)) {
         if (self.internalPasscodeView == nil) {
             [_passcodeTextField resignFirstResponder];
-        } else {
-            [self.view.window endEditing:YES];
         }
         _animatingView.hidden = NO;
     }
     if (_isUsingBiometrics && !_isUserChangingPasscode && !_isUserBeingAskedForNewPasscode && !_isUserConfirmingPasscode && !_isUserEnablingPasscode && !_isUserSwitchingBetweenPasscodeModes && !_isUserTurningPasscodeOff) {
         if (self.internalPasscodeView == nil) {
             [_passcodeTextField resignFirstResponder];
-        } else {
-            [self.view.window endEditing:YES];
         }
         _animatingView.hidden = _isUsingBiometrics;
     }
 }
-
 
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
@@ -540,9 +551,9 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [self _close];
         return;
     }
-    
+
     [super viewWillDisappear:animated];
-    
+
     if (!_displayedAsModal && !_displayedAsLockScreen) {
         [self textFieldShouldEndEditing:_passcodeTextField];
     }
@@ -559,11 +570,11 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _isUserSwitchingBetweenPasscodeModes = NO;
     [self _resetUI];
     [_passcodeTextField resignFirstResponder];
-    
+
     if ([self.delegate respondsToSelector: @selector(passcodeViewControllerWillClose:)]) {
         [self.delegate passcodeViewControllerWillClose:YES];
     }
-    
+
     if (_displayedAsModal) [self dismissViewControllerAnimated:YES completion:nil];
     else if (!_displayedAsLockScreen && !self.isMovingFromParentViewController) { [self.navigationController popViewControllerAnimated:YES]; }
 }
@@ -599,13 +610,15 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         if ([self.delegate respondsToSelector: @selector(passcodeViewControllerWillClose:)]) {
             [self.delegate passcodeViewControllerWillClose:NO];
         }
-        
+
         if (self.displayedAsLockScreen) {
             [self.digitTextFieldsArray removeAllObjects];
             self.updatedEnteringPasscode = @"";
             [self.internalPasscodeView removeFromSuperview];
             [self.view removeFromSuperview];
             [self removeFromParentViewController];
+            [[self internalWindow] dismiss];
+            self.internalWindow = nil;
         }
         else if (self.displayedAsModal) {
             [self dismissViewControllerAnimated:YES
@@ -625,7 +638,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     patchView.backgroundColor = [UIColor whiteColor];
     patchView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [self.view addSubview:patchView];
-    
+
     self.navBar =
     [[UINavigationBar alloc] initWithFrame:CGRectMake(0, patchView.frame.size.height,
                                                           LTHMainWindow.frame.size.width, 44)];
@@ -639,7 +652,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         self.navBar.titleTextAttributes =
         @{ NSForegroundColorAttributeName : self.navigationTitleColor };
     }
-    
+
     // Navigation item
     UIBarButtonItem *leftButton =
     [[UIBarButtonItem alloc] initWithTitle:logoutTitle
@@ -647,12 +660,12 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                     target:self
                                     action:@selector(_logoutWasPressed)];
     [leftButton setTitlePositionAdjustment:UIOffsetMake(10, 0) forBarMetrics:UIBarMetricsDefault];
-    
+
     UINavigationItem *item =
     [[UINavigationItem alloc] initWithTitle:self.title];
     item.leftBarButtonItem = leftButton;
     item.hidesBackButton = YES;
-    
+
     [self.navBar pushNavigationItem:item animated:NO];
     [self.view addSubview:self.navBar];
 }
@@ -665,14 +678,14 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _coverView.tag = _coverViewTag;
     _coverView.hidden = YES;
     [LTHMainWindow addSubview: _coverView];
-    
+
     _complexPasscodeOverlayView = [[UIView alloc] initWithFrame:CGRectZero];
     _complexPasscodeOverlayView.backgroundColor = [UIColor whiteColor];
     _complexPasscodeOverlayView.translatesAutoresizingMaskIntoConstraints = NO;
-    
+
     _simplePasscodeView = [[UIView alloc] initWithFrame:CGRectZero];
     _simplePasscodeView.translatesAutoresizingMaskIntoConstraints = NO;
-    
+
     [_animatingView addSubview:_complexPasscodeOverlayView];
     [_animatingView addSubview:_simplePasscodeView];
 }
@@ -686,7 +699,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _enterPasscodeLabel.font = _labelFont;
     _enterPasscodeLabel.textAlignment = NSTextAlignmentCenter;
     [_animatingView addSubview: _enterPasscodeLabel];
-    
+
     _enterPasscodeInfoLabel = [[UILabel alloc] initWithFrame: CGRectZero];
     _enterPasscodeInfoLabel.backgroundColor = _enterPasscodeLabelBackgroundColor;
     _enterPasscodeInfoLabel.numberOfLines = 0;
@@ -695,22 +708,22 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _enterPasscodeInfoLabel.textAlignment = NSTextAlignmentCenter;
     _enterPasscodeInfoLabel.hidden = !_displayAdditionalInfoDuringSettingPasscode;
     [_animatingView addSubview: _enterPasscodeInfoLabel];
-    
+
     // It is also used to display the "Passcodes did not match" error message
     // if the user fails to confirm the passcode.
     _failedAttemptLabel = [[UILabel alloc] initWithFrame: CGRectZero];
     _failedAttemptLabel.text = self.errorPasscodeString;
     _failedAttemptLabel.numberOfLines = 0;
-    _failedAttemptLabel.backgroundColor	= _failedAttemptLabelBackgroundColor;
+    _failedAttemptLabel.backgroundColor    = _failedAttemptLabelBackgroundColor;
     _failedAttemptLabel.hidden = YES;
     _failedAttemptLabel.textColor = _failedAttemptLabelTextColor;
     _failedAttemptLabel.font = _labelFont;
     _failedAttemptLabel.textAlignment = NSTextAlignmentCenter;
     [_animatingView addSubview: _failedAttemptLabel];
-    
+
     _enterPasscodeLabel.text = _isUserChangingPasscode ? self.enterOldPasscodeString : self.enterPasscodeString;
     _enterPasscodeInfoLabel.text = self.enterPasscodeInfoString;
-    
+
     _enterPasscodeLabel.translatesAutoresizingMaskIntoConstraints = NO;
     _enterPasscodeInfoLabel.translatesAutoresizingMaskIntoConstraints = NO;
     _failedAttemptLabel.translatesAutoresizingMaskIntoConstraints = NO;
@@ -776,7 +789,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                   action:@selector(_validateComplexPasscode)
         forControlEvents:UIControlEventTouchUpInside];
     [_complexPasscodeOverlayView addSubview:_OKButton];
-    
+
     _OKButton.hidden = YES;
     _OKButton.translatesAutoresizingMaskIntoConstraints = NO;
 }
@@ -786,9 +799,9 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     [super updateViewConstraints];
     [self.view removeConstraints:self.view.constraints];
     [_animatingView removeConstraints:_animatingView.constraints];
-    
+
     _simplePasscodeView.hidden = !self.isSimple;
-    
+
     _complexPasscodeOverlayView.hidden = self.isSimple;
     _passcodeTextField.alpha = 0.0;
     // This would make the existing text to be cleared after dismissing
@@ -803,7 +816,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     }
     else {
         [_complexPasscodeOverlayView addSubview:_passcodeTextField];
-        
+
         // If we come from simple state some constraints are added even if
         // translatesAutoresizingMaskIntoConstraints = NO,
         // because no constraints are added manually in that case
@@ -828,7 +841,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                   constant: 0];
     [self.view addConstraint: enterPasscodeConstraintCenterX];
     [self.view addConstraint: enterPasscodeConstraintCenterY];
-    
+
     NSLayoutConstraint *enterPasscodeInfoConstraintCenterX =
     [NSLayoutConstraint constraintWithItem: _enterPasscodeInfoLabel
                                  attribute: NSLayoutAttributeCenterX
@@ -847,7 +860,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                   constant: 50];
     [self.view addConstraint: enterPasscodeInfoConstraintCenterX];
     [self.view addConstraint: enterPasscodeInfoConstraintCenterY];
-    
+
     if (self.isSimple && self.internalPasscodeView == nil) {
         [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
             CGFloat constant = idx == 0 ? 0 : self.horizontalGap;
@@ -861,7 +874,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                          attribute: NSLayoutAttributeLeft
                                         multiplier: 1.0f
                                           constant: constant];
-            
+
             NSLayoutConstraint *top =
             [NSLayoutConstraint constraintWithItem: textField
                                          attribute: NSLayoutAttributeTop
@@ -870,7 +883,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                          attribute: NSLayoutAttributeTop
                                         multiplier: 1.0f
                                           constant: 0];
-            
+
             NSLayoutConstraint *bottom =
             [NSLayoutConstraint constraintWithItem: textField
                                          attribute: NSLayoutAttributeBottom
@@ -879,11 +892,11 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                          attribute: NSLayoutAttributeBottom
                                         multiplier: 1.0f
                                           constant: 0];
-            
+
             [self.view addConstraint:digitX];
             [self.view addConstraint:top];
             [self.view addConstraint:bottom];
-            
+
             if (idx == self.digitTextFieldsArray.count - 1) {
                 NSLayoutConstraint *trailing =
                 [NSLayoutConstraint constraintWithItem: textField
@@ -893,11 +906,11 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                              attribute: NSLayoutAttributeTrailing
                                             multiplier: 1.0f
                                               constant: 0];
-                
+
                 [self.view addConstraint:trailing];
             }
         }];
-        
+
         NSLayoutConstraint *simplePasscodeViewX =
         [NSLayoutConstraint constraintWithItem: _simplePasscodeView
                                      attribute: NSLayoutAttributeCenterX
@@ -906,7 +919,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                      attribute: NSLayoutAttributeCenterX
                                     multiplier: 1.0
                                       constant: 0];
-        
+
         NSLayoutConstraint *simplePasscodeViewY =
         [NSLayoutConstraint constraintWithItem: _simplePasscodeView
                                      attribute: NSLayoutAttributeCenterY
@@ -915,32 +928,32 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                      attribute: NSLayoutAttributeBottom
                                     multiplier: 1.0
                                       constant: _verticalGap];
-        
-        
+
+
         [self.view addConstraint:simplePasscodeViewX];
         [self.view addConstraint:simplePasscodeViewY];
-        
+
     }
     else if (!self.isSimple && self.internalPasscodeView == nil) {
         NSDictionary *viewsDictionary = NSDictionaryOfVariableBindings(_passcodeTextField, _OKButton);
-        
+
         //TODO: specify different offsets through metrics
         NSArray *constraints =
         [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-10-[_passcodeTextField]-5-[_OKButton]-10-|"
                                                 options:0
                                                 metrics:nil
                                                   views:viewsDictionary];
-        
+
         [self.view addConstraints:constraints];
-        
+
         constraints =
         [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-5-[_passcodeTextField]-5-|"
                                                 options:0
                                                 metrics:nil
                                                   views:viewsDictionary];
-        
+
         [self.view addConstraints:constraints];
-        
+
         NSLayoutConstraint *buttonY =
         [NSLayoutConstraint constraintWithItem: _OKButton
                                      attribute: NSLayoutAttributeCenterY
@@ -949,9 +962,9 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                      attribute: NSLayoutAttributeCenterY
                                     multiplier: 1.0f
                                       constant: 0.0f];
-        
+
         [self.view addConstraint:buttonY];
-        
+
         NSLayoutConstraint *buttonHeight =
         [NSLayoutConstraint constraintWithItem: _OKButton
                                      attribute: NSLayoutAttributeHeight
@@ -960,9 +973,9 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                      attribute: NSLayoutAttributeHeight
                                     multiplier: 1.0f
                                       constant: 0.0f];
-        
+
         [self.view addConstraint:buttonHeight];
-        
+
         NSLayoutConstraint *overlayViewLeftConstraint =
         [NSLayoutConstraint constraintWithItem: _complexPasscodeOverlayView
                                      attribute: NSLayoutAttributeLeft
@@ -971,7 +984,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                      attribute: NSLayoutAttributeLeft
                                     multiplier: 1.0f
                                       constant: 0.0f];
-        
+
         NSLayoutConstraint *overlayViewY =
         [NSLayoutConstraint constraintWithItem: _complexPasscodeOverlayView
                                      attribute: NSLayoutAttributeCenterY
@@ -980,7 +993,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                      attribute: NSLayoutAttributeBottom
                                     multiplier: 1.0f
                                       constant: _verticalGap];
-        
+
         NSLayoutConstraint *overlayViewHeight =
         [NSLayoutConstraint constraintWithItem: _complexPasscodeOverlayView
                                      attribute: NSLayoutAttributeHeight
@@ -989,7 +1002,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                      attribute: NSLayoutAttributeNotAnAttribute
                                     multiplier: 1.0f
                                       constant: _passcodeOverlayHeight];
-        
+
         NSLayoutConstraint *overlayViewWidth =
         [NSLayoutConstraint constraintWithItem: _complexPasscodeOverlayView
                                      attribute: NSLayoutAttributeWidth
@@ -1000,7 +1013,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                       constant: 0.0f];
         [self.view addConstraints:@[overlayViewLeftConstraint, overlayViewY, overlayViewHeight, overlayViewWidth]];
     }
-    
+
     NSLayoutConstraint *failedAttemptLabelCenterX =
     [NSLayoutConstraint constraintWithItem: _failedAttemptLabel
                                  attribute: NSLayoutAttributeCenterX
@@ -1042,7 +1055,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 - (void)showLockScreenOver:(UIView *)superview withAnimation:(BOOL)animated withLogout:(BOOL)hasLogout andLogoutTitle:(NSString*)logoutTitle {
     [self _prepareAsLockScreen];
-    
+
     // In case the user leaves the app while the lockscreen is already active.
     if (_isCurrentlyOnScreen) { return; }
     _isCurrentlyOnScreen = YES;
@@ -1051,25 +1064,39 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     passcodeView.passcodeButtonDelegate = self;
     self.internalPasscodeView = passcodeView;
     [self.view addSubview:passcodeView];
-    [superview addSubview: self.view];
+    PasscodeWindow * passcodeWindow;
+    if (@available(iOS 13.0, *)) {
+        passcodeWindow = [[PasscodeWindow alloc] initWithWindowScene:[(UIWindow *)superview windowScene]];
+    } else {
+        passcodeWindow = [[PasscodeWindow alloc] initWithFrame:superview.bounds];
+    }
+    passcodeWindow.backgroundColor = [UIColor clearColor];
+    passcodeWindow.windowLevel = UIWindowLevelStatusBar + 1;
+    passcodeWindow.rootViewController = self;
+    self.internalWindow = passcodeWindow;
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    [passcodeWindow makeKeyAndVisible];
+    [CATransaction commit];
+    //[superview addSubview: self.view];
     [self _setupDigitFields];
 
     // All this hassle because a view added to UIWindow does not rotate automatically
     // and if we would have added the view anywhere else, it wouldn't display properly
     // (having a modal on screen when the user leaves the app, for example).
     [self rotateAccordingToStatusBarOrientationAndSupportedOrientations];
-    
-    CGPoint superviewCenter = CGPointMake(superview.center.x, superview.center.y);
+
+    /*CGPoint superviewCenter = CGPointMake(superview.center.x, superview.center.y);
     CGPoint newCenter;
 
     self.view.center = CGPointMake(self.view.center.x, self.view.center.y * -1.f);
     newCenter = CGPointMake(superviewCenter.x,
                             superviewCenter.y + self.navigationController.navigationBar.frame.size.height / 2);
-    
+
     [UIView animateWithDuration: animated ? _lockAnimationDuration : 0 animations: ^{
         self.view.center = newCenter;
-    }];
-    
+    }];*/
+
     // Add nav bar & logout button if specified
     if (hasLogout) {
         _isUsingNavBar = hasLogout;
@@ -1085,22 +1112,26 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
                                                       target:self
                                                       action:@selector(_cancelAndDismissMe)];
     }
-    
+
     if (!_displayedAsModal) {
-        [viewController.navigationController pushViewController:self
-                                                       animated:YES];
+        CATransition *transition = [CATransition animation];
+        [viewController.navigationController pushViewController:self animated:NO];
+        [transition setType: kCATransitionPush];
+        [transition setSubtype: kCATransitionFromRight];
+        [transition setDuration: 0.3];
+        [transition setTimingFunction:[CAMediaTimingFunction functionWithName: kCAMediaTimingFunctionEaseInEaseOut]];
+        [[_animatingView layer] addAnimation: transition forKey: @"push"];
         self.navigationItem.hidesBackButton = _hidesBackButton;
-        
         return;
     }
 
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:self];
     navController.modalPresentationStyle = UIModalPresentationFullScreen;
-    
+
     // Make sure nav bar for logout is off the screen
     [self.navBar removeFromSuperview];
     self.navBar = nil;
-    
+
     // Customize navigation bar
     // Make sure UITextAttributeTextColor is not set to nil
     // barTintColor & translucent is only called on iOS7+
@@ -1115,7 +1146,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         navController.navigationBar.titleTextAttributes =
         @{ NSForegroundColorAttributeName : self.navigationTitleColor };
     }
-    
+
     [viewController presentViewController:navController
                                  animated:YES
                                completion:nil];
@@ -1166,7 +1197,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _isUserConfirmingPasscode = NO;
     _isUserEnablingPasscode = NO;
     _isUserSwitchingBetweenPasscodeModes = NO;
-    
+
     self.title = @"";
     [self _resetUI];
     [self _setupFingerPrint];
@@ -1180,7 +1211,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _isUserChangingPasscode = YES;
     _isUserConfirmingPasscode = NO;
     _isUserEnablingPasscode = NO;
-    
+
     [self _resetUI];
 }
 
@@ -1193,7 +1224,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _isUserConfirmingPasscode = NO;
     _isUserEnablingPasscode = NO;
     _isUserSwitchingBetweenPasscodeModes = NO;
-    
+
     [self _resetUI];
 }
 
@@ -1206,7 +1237,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _isUserConfirmingPasscode = NO;
     _isUserEnablingPasscode = YES;
     _isUserSwitchingBetweenPasscodeModes = NO;
-    
+
     [self _resetUI];
 }
 
@@ -1215,14 +1246,14 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField {
     if (self.displayedAsLockScreen) { return NO; }
     if (textField == _passcodeTextField) { return YES; }
-    
+
     [_passcodeTextField becomeFirstResponder];
-    
+
     UITextPosition *end = _passcodeTextField.endOfDocument;
     UITextRange *range = [_passcodeTextField textRangeFromPosition:end toPosition:end];
-    
+
     [_passcodeTextField setSelectedTextRange:range];
-    
+
     return false;
 }
 
@@ -1234,32 +1265,32 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 }
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-    
+
     if ([string isEqualToString: @"\n"] || self.isTempararlyDisabled) return NO;
-    
+
     NSString *typedString = [textField.text stringByReplacingCharactersInRange: range
                                                                     withString: string];
-    
+
     if (self.isSimple) {
-        
+
         [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
             textField.secureTextEntry = typedString.length > idx;
             textField.textColor = typedString.length > idx ? self.passcodeColor : self.passcodeTextColor;
         }];
-        
+
         if (typedString.length == _digitsCount) {
             // Make the last bullet show up
             [self performSelector: @selector(_validatePasscode:)
                        withObject: typedString
                        afterDelay: 0.15];
         }
-        
+
         if (typedString.length > _digitsCount) return NO;
     }
     else {
         _OKButton.hidden = [typedString length] == 0;
     }
-    
+
     return YES;
 }
 
@@ -1330,7 +1361,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
             return NO;
         }
     }
-    
+
     return YES;
 }
 
@@ -1339,12 +1370,12 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 - (void)_askForNewPasscode {
     _isUserBeingAskedForNewPasscode = YES;
     _isUserConfirmingPasscode = NO;
-    
+
     // Update layout considering type
     [self.view setNeedsUpdateConstraints];
-    
+
     _failedAttemptLabel.hidden = YES;
-    
+
     CATransition *transition = [CATransition animation];
     [self performSelector: @selector(_resetUI) withObject: nil afterDelay: 0.1f];
     [transition setType: kCATransitionPush];
@@ -1360,7 +1391,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _isUserBeingAskedForNewPasscode = YES;
     _isUserConfirmingPasscode = NO;
     _tempPasscode = @"";
-    
+
     CATransition *transition = [CATransition animation];
     [self performSelector: @selector(_resetUIForReEnteringNewPasscode)
                withObject: nil
@@ -1378,7 +1409,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _isUserBeingAskedForNewPasscode = NO;
     _isUserConfirmingPasscode = YES;
     _failedAttemptLabel.hidden = YES;
-    
+
     CATransition *transition = [CATransition animation];
     [self performSelector: @selector(_resetUI) withObject: nil afterDelay: 0.1f];
     [transition setType: kCATransitionPush];
@@ -1394,7 +1425,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     [self _resetTextFields];
     _passcodeTextField.text = @"";
     _OKButton.hidden = YES;
-    
+
     CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath: @"transform.translation.x"];
     animation.duration = 0.6;
     animation.timingFunction = [CAMediaTimingFunction functionWithName: kCAAnimationLinear];
@@ -1419,21 +1450,21 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         [CATransaction commit];
     }];
     [CATransaction commit];
-    
+
     _failedAttempts++;
-    
+
     if (_maxNumberOfAllowedFailedAttempts > 0 &&
         _failedAttempts >= _maxNumberOfAllowedFailedAttempts &&
         [self.delegate respondsToSelector: @selector(maxNumberOfFailedAttemptsReached)]) {
         [self.delegate maxNumberOfFailedAttemptsReached];
     }
-    
+
     NSString *translationText = self.errorPasscodeString;
     // To give it some padding. Since it's center-aligned,
     // it will automatically distribute the extra space.
     // Ironically enough, I found 5 spaces to be the best looking.
     _failedAttemptLabel.text = [NSString stringWithFormat:@"%@     ", translationText];
-    
+
     _failedAttemptLabel.layer.cornerRadius = LTHiPad ? 19 : 14;
     _failedAttemptLabel.clipsToBounds = true;
     _failedAttemptLabel.hidden = YES;
@@ -1463,7 +1494,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
             [self.passcodeTextField becomeFirstResponder];
         });
     }
-    
+
     [_digitTextFieldsArray enumerateObjectsUsingBlock:^(UITextField * _Nonnull textField, NSUInteger idx, BOOL * _Nonnull stop) {
         textField.secureTextEntry = NO;
         textField.textColor = self.passcodeTextColor;
@@ -1473,10 +1504,10 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 - (void)_resetUI {
     [self _resetTextFields];
-    _failedAttemptLabel.backgroundColor	= _failedAttemptLabelBackgroundColor;
+    _failedAttemptLabel.backgroundColor    = _failedAttemptLabelBackgroundColor;
     _failedAttemptLabel.textColor = _failedAttemptLabelTextColor;
     if (_failedAttempts == 0) _failedAttemptLabel.hidden = YES;
-    
+
     _passcodeTextField.text = @"";
     if (_isUserConfirmingPasscode) {
         if (_isUserEnablingPasscode) {
@@ -1504,16 +1535,16 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
             _enterPasscodeInfoLabel.hidden = !(_isUserEnablingPasscode && _displayAdditionalInfoDuringSettingPasscode);
         }
     }
-    
+
     _enterPasscodeInfoLabel.text = self.enterPasscodeInfoString;
-    
+
     // Make sure nav bar for logout is off the screen
     if (_isUsingNavBar) {
         [self.navBar removeFromSuperview];
         self.navBar = nil;
     }
     _isUsingNavBar = NO;
-    
+
     _OKButton.hidden = YES;
 }
 
@@ -1569,9 +1600,9 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
             _useFallbackPasscode = NO;
             [_passcodeTextField resignFirstResponder];
         }
-        
+
         if (_isCurrentlyOnScreen && !_displayedAsModal) return;
-        
+
         _coverView.hidden = NO;
         if (![LTHMainWindow viewWithTag: _coverViewTag]) {
             [LTHMainWindow addSubview: _coverView];
@@ -1597,7 +1628,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     if ([self _doesPasscodeExist] &&
         [self _didPasscodeTimerEnd]) {
         _useFallbackPasscode = NO;
-        
+
         if (!_displayedAsModal && !_displayedAsLockScreen && _isCurrentlyOnScreen) {
             [_passcodeTextField resignFirstResponder];
             [self.navigationController popViewControllerAnimated:NO];
@@ -1634,19 +1665,19 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 #pragma mark - Init
 + (instancetype)sharedUser {
     __strong static LTHPasscodeViewController *sharedObject = nil;
-    
+
     static dispatch_once_t pred;
     dispatch_once(&pred, ^{
         sharedObject = [[self alloc] init];
     });
-    
+
     return sharedObject;
 }
 
 
 - (id)init {
     self = [super init];
-    
+
     if (self) {
         [self _commonInit];
     }
@@ -1749,7 +1780,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     _coverViewBackgroundColor = [UIColor colorWithRed:0.97f green:0.97f blue:1.0f alpha:1.00f];
     _failedAttemptLabelBackgroundColor =  [UIColor colorWithRed:0.8f green:0.1f blue:0.2f alpha:1.000f];
     _enterPasscodeLabelBackgroundColor = [UIColor clearColor];
-    
+
     // Text
     _labelTextColor = [UIColor colorWithWhite:0.31f alpha:1.0f];
     _passcodeTextColor = [UIColor colorWithWhite:0.31f alpha:1.0f];
@@ -1816,7 +1847,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     // I'll be honest and mention I have no idea why this line of code below works.
     // Without it, if you present the passcode view as lockscreen (directly on the window)
     // and then inside of a modal, the orientation will be wrong.
-    
+
     // If you could explain why, I'd be more than grateful :)
     return UIInterfaceOrientationMaskPortrait;
 }
@@ -1879,7 +1910,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 - (void)enablePasscodeWhenApplicationEntersBackground {
     // To avoid double registering.
     [self disablePasscodeWhenApplicationEntersBackground];
-    
+
     [[NSNotificationCenter defaultCenter]
      addObserver:self
      selector:@selector(_applicationDidEnterBackground)
@@ -1895,7 +1926,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 + (CGFloat)getStatusBarHeight {
     UIInterfaceOrientation orientation = [LTHPasscodeViewController currentOrientation];
-    
+
     // statusBarFrame is deprecated in iOS 13 and windowScene isn't available before iOS 13
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
     if (@available(iOS 13.0, *)) {
@@ -1925,7 +1956,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
 
 CGFloat UIInterfaceOrientationAngleOfOrientation(UIInterfaceOrientation orientation) {
     CGFloat angle;
-    
+
     switch (orientation) {
         case UIInterfaceOrientationPortraitUpsideDown:
             angle = M_PI;
@@ -1940,12 +1971,17 @@ CGFloat UIInterfaceOrientationAngleOfOrientation(UIInterfaceOrientation orientat
             angle = 0.0;
             break;
     }
-    
+
     return angle;
 }
 
 UIInterfaceOrientationMask UIInterfaceOrientationMaskFromOrientation(UIInterfaceOrientation orientation) {
     return 1 << orientation;
+}
+
+- (void)dealloc {
+    [_internalWindow dismiss];
+    _internalWindow = nil;
 }
 
 #pragma mark - Passcode buttons
@@ -1988,3 +2024,4 @@ UIInterfaceOrientationMask UIInterfaceOrientationMaskFromOrientation(UIInterface
 }
 
 @end
+
