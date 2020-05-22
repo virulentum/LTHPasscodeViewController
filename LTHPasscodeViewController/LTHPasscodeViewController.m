@@ -272,7 +272,8 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
     // closed, etc) if it returns -1.
     return now - [self _timerStartTime] >= [self _timerDuration]
             || [self _timerStartTime] == -1
-            || now <= [self _timerStartTime];
+            || now <= [self _timerStartTime]
+            || (NSInteger)(now - [self _timerStartTime]) < -60;
     // If the date was set in the past, this would return false.
     // It won't register as false, even right as it is being enabled,
     // because the saving alone takes 0.002+ seconds on a MBP 2.6GHz i7.
