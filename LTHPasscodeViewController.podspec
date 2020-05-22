@@ -16,7 +16,7 @@ Pod::Spec.new do |spec|
   #
 
   spec.name         = "LTHPasscodeViewController"
-  spec.version      = "4.0.18"
+  spec.version      = "4.0.19"
   spec.summary      = "iOS 7 style Passcode Lock"
 
   # This description is used to generate tags and improve search results.

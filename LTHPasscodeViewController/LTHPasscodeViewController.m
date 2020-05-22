@@ -608,7 +608,7 @@ static const NSInteger LTHMaxPasscodeDigits = 10;
         }
     } completion: ^(BOOL finished) {
         if ([self.delegate respondsToSelector: @selector(passcodeViewControllerWillClose:)]) {
-            [self.delegate passcodeViewControllerWillClose:NO];
+            [self.delegate passcodeViewControllerWillClose:self.displayedAsLockScreen];
         }
 
         if (self.displayedAsLockScreen) {
